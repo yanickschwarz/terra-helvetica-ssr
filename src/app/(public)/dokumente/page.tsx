@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Download } from "lucide-react";
 import FadeIn from "@/components/motion/FadeIn";
 import StaggerContainer, { StaggerItem } from "@/components/motion/StaggerContainer";
@@ -8,7 +7,6 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
 const DocCard = ({ name, url }: { name: string; url: string }) => (
   <a
@@ -23,10 +21,16 @@ const DocCard = ({ name, url }: { name: string; url: string }) => (
 );
 
 export default function Dokumente() {
-  const [showAllReportingsDE, setShowAllReportingsDE] = useState(false);
-  const [showAllReportingsFR, setShowAllReportingsFR] = useState(false);
-
-  const { data: documents, isLoading } = useQuery({
+  const { data: documents, isLoading } = useQuery<
+    {
+      id: string;
+      name: string;
+      url: string;
+      category: string;
+      language: string;
+      sort_order: number;
+    }[]
+  >({
     queryKey: ["th_documents"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -48,8 +52,8 @@ export default function Dokumente() {
   const nachhaltigkeitsReportingsDE = documents?.filter((d) => d.category === "nachhaltigkeits-reportings" && d.language === "de") || [];
   const nachhaltigkeitsReportingsFR = documents?.filter((d) => d.category === "nachhaltigkeits-reportings" && d.language === "fr") || [];
 
-  const visibleReportingsDE = showAllReportingsDE ? reportingsDE : reportingsDE.slice(0, 4);
-  const visibleReportingsFR = showAllReportingsFR ? reportingsFR : reportingsFR.slice(0, 4);
+  const visibleReportingsDE = reportingsDE.slice(0, 4);
+  const visibleReportingsFR = reportingsFR.slice(0, 4);
 
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 3xl:grid-cols-3 gap-4">
@@ -219,15 +223,6 @@ export default function Dokumente() {
                     </StaggerItem>
                   ))}
                 </StaggerContainer>
-                {reportingsDE.length > 4 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAllReportingsDE((v) => !v)}
-                    className="mt-6"
-                  >
-                    {showAllReportingsDE ? "Weniger anzeigen" : `Alle anzeigen (${reportingsDE.length})`}
-                  </Button>
-                )}
               </div>
               <div>
                 <FadeIn delay={0.15}>
@@ -240,15 +235,6 @@ export default function Dokumente() {
                     </StaggerItem>
                   ))}
                 </StaggerContainer>
-                {reportingsFR.length > 4 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAllReportingsFR((v) => !v)}
-                    className="mt-6"
-                  >
-                    {showAllReportingsFR ? "Weniger anzeigen" : `Alle anzeigen (${reportingsFR.length})`}
-                  </Button>
-                )}
               </div>
             </div>
           )}

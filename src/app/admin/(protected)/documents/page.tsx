@@ -9,8 +9,25 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface DocRecord {
   id: string;
@@ -78,12 +95,28 @@ export default function AdminDocuments() {
     mutationFn: async () => {
       let url = form.url;
       if (pdfFile) url = await uploadPdf(pdfFile);
-      const payload = { ...form, url };
       if (editing) {
-        const { error } = await supabase.from("th_documents").update(payload).eq("id", editing.id);
+        // Don't overwrite sort_order on edit — keep its current position
+        const { error } = await supabase
+          .from("th_documents")
+          .update({ name: form.name, url, category: form.category, language: form.language })
+          .eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("th_documents").insert(payload);
+        // New entry: append at the end of its category + language group
+        const siblings = (docs ?? []).filter(
+          (d) => d.category === form.category && d.language === form.language
+        );
+        const nextOrder = siblings.length
+          ? Math.max(...siblings.map((d) => d.sort_order)) + 1
+          : 0;
+        const { error } = await supabase.from("th_documents").insert({
+          name: form.name,
+          url,
+          category: form.category,
+          language: form.language,
+          sort_order: nextOrder,
+        });
         if (error) throw error;
       }
     },
@@ -107,6 +140,22 @@ export default function AdminDocuments() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: { id: string; sort_order: number }[]) => {
+      // Update each row individually — Postgres doesn't have a clean batch-update for different values
+      const promises = updates.map((u) =>
+        supabase.from("th_documents").update({ sort_order: u.sort_order }).eq("id", u.id)
+      );
+      const results = await Promise.all(promises);
+      const firstError = results.find((r) => r.error)?.error;
+      if (firstError) throw firstError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-documents"] });
+    },
+    onError: (e: Error) => toast.error("Reihenfolge speichern fehlgeschlagen: " + e.message),
+  });
+
   const resetForm = () => { setForm(emptyForm); setPdfFile(null); setEditing(null); setOpen(false); };
 
   const openEdit = (d: DocRecord) => {
@@ -115,33 +164,107 @@ export default function AdminDocuments() {
     setOpen(true);
   };
 
-  const renderCategory = (category: string) => {
-    const filtered = docs?.filter((d) => d.category === category) ?? [];
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const SortableRow = ({ doc }: { doc: DocRecord }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: doc.id });
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
     return (
-      <div className="bg-background border border-border rounded-lg overflow-hidden">
+      <tr ref={setNodeRef} style={style} className="border-t border-border bg-background">
+        <td className="p-3 w-10">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+            aria-label="Sortieren"
+            type="button"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        </td>
+        <td className="p-3 font-medium">{doc.name}</td>
+        <td className="p-3 text-right">
+          <Button variant="ghost" size="sm" onClick={() => openEdit(doc)}><Pencil className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(doc.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        </td>
+      </tr>
+    );
+  };
+
+  const SortableTable = ({ items, title }: { items: DocRecord[]; title?: string }) => {
+    const handleDragEnd = (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = items.findIndex((d) => d.id === active.id);
+      const newIndex = items.findIndex((d) => d.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const reordered = arrayMove(items, oldIndex, newIndex);
+      // Optimistic local cache update so the UI moves instantly
+      queryClient.setQueryData<DocRecord[]>(["admin-documents"], (prev) => {
+        if (!prev) return prev;
+        const idToOrder = new Map(reordered.map((d, i) => [d.id, i]));
+        return prev.map((d) =>
+          idToOrder.has(d.id)
+            ? { ...d, sort_order: idToOrder.get(d.id)! }
+            : d
+        );
+      });
+      reorderMutation.mutate(reordered.map((d, i) => ({ id: d.id, sort_order: i })));
+    };
+
+    return (
+      <div className="bg-background border border-border rounded-lg overflow-hidden mb-4">
+        {title && (
+          <div className="bg-muted/50 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {title}
+          </div>
+        )}
         <table className="w-full text-sm">
           <thead className="bg-muted">
             <tr>
+              <th className="w-10 p-3"></th>
               <th className="text-left p-3 font-medium">Name</th>
-              <th className="text-left p-3 font-medium">Sprache</th>
               <th className="text-right p-3 font-medium">Aktionen</th>
             </tr>
           </thead>
-          <tbody>
-            {filtered.map((d) => (
-              <tr key={d.id} className="border-t border-border">
-                <td className="p-3 font-medium">{d.name}</td>
-                <td className="p-3 text-muted-foreground uppercase">{d.language}</td>
-                <td className="p-3 text-right">
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && <tr><td colSpan={3} className="p-6 text-center text-muted-foreground">Keine Dokumente</td></tr>}
-          </tbody>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+              <tbody>
+                {items.map((d) => <SortableRow key={d.id} doc={d} />)}
+                {items.length === 0 && <tr><td colSpan={3} className="p-6 text-center text-muted-foreground">Keine Dokumente</td></tr>}
+              </tbody>
+            </SortableContext>
+          </DndContext>
         </table>
       </div>
+    );
+  };
+
+  const renderCategory = (category: string) => {
+    const inCategory = (docs?.filter((d) => d.category === category) ?? [])
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order);
+
+    // Reglemente has no language split on the public page — show as single list
+    if (category === "reglemente") {
+      return <SortableTable items={inCategory} />;
+    }
+
+    const de = inCategory.filter((d) => d.language === "de");
+    const fr = inCategory.filter((d) => d.language === "fr");
+
+    return (
+      <>
+        <SortableTable items={de} title="Deutsch" />
+        <SortableTable items={fr} title="Französisch" />
+      </>
     );
   };
 
@@ -184,7 +307,7 @@ export default function AdminDocuments() {
                 <Label>Oder URL eingeben</Label>
                 <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." className="rounded-md" />
               </div>
-              <div><Label>Sortierung</Label><Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} className="rounded-md" /></div>
+              <p className="text-xs text-muted-foreground">Reihenfolge wird per Drag &amp; Drop in der Liste festgelegt.</p>
               <Button type="submit" disabled={saveMutation.isPending} className="w-full rounded-md">{saveMutation.isPending ? "Speichern..." : "Speichern"}</Button>
             </form>
           </DialogContent>
