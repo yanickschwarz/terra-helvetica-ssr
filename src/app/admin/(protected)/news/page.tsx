@@ -44,8 +44,23 @@ export default function AdminNews() {
     },
   });
 
+  const sanitizeFilename = (name: string) => {
+    const lastDot = name.lastIndexOf(".");
+    const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+    const ext = lastDot > 0 ? name.slice(lastDot) : "";
+    const cleanBase = base
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")
+      .replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue")
+      .replace(/ß/g, "ss")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]+/g, "-")
+      .replace(/-+/g, "-").replace(/^-|-$/g, "");
+    const cleanExt = ext.toLowerCase().replace(/[^a-z0-9.]/g, "");
+    return (cleanBase || "file") + cleanExt;
+  };
+
   const uploadFile = async (file: File, bucket: string, folder: string) => {
-    const path = `${folder}/${Date.now()}-${file.name}`;
+    const path = `${folder}/${Date.now()}-${sanitizeFilename(file.name)}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file);
     if (error) throw error;
     return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;

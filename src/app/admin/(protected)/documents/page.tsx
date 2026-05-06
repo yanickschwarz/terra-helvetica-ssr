@@ -47,8 +47,28 @@ export default function AdminDocuments() {
     },
   });
 
+  const sanitizeFilename = (name: string) => {
+    // Split off the extension so we don't mangle the dot
+    const lastDot = name.lastIndexOf(".");
+    const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+    const ext = lastDot > 0 ? name.slice(lastDot) : "";
+    const cleanBase = base
+      // German umlauts and ß
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")
+      .replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue")
+      .replace(/ß/g, "ss")
+      // Strip any remaining accents (é, è, à, ñ, ...)
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      // Anything that's not alphanumeric, dash, underscore or dot becomes a dash
+      .replace(/[^a-zA-Z0-9._-]+/g, "-")
+      // Collapse repeated dashes and trim
+      .replace(/-+/g, "-").replace(/^-|-$/g, "");
+    const cleanExt = ext.toLowerCase().replace(/[^a-z0-9.]/g, "");
+    return (cleanBase || "file") + cleanExt;
+  };
+
   const uploadPdf = async (file: File) => {
-    const path = `documents/${Date.now()}-${file.name}`;
+    const path = `documents/${Date.now()}-${sanitizeFilename(file.name)}`;
     const { error } = await supabase.storage.from("th-documents").upload(path, file);
     if (error) throw error;
     return supabase.storage.from("th-documents").getPublicUrl(path).data.publicUrl;
