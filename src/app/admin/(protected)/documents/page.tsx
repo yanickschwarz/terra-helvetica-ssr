@@ -44,6 +44,7 @@ const categories = [
   { value: "geschaeftsberichte", label: "Geschäftsberichte" },
   { value: "reportings", label: "Reportings" },
   { value: "nachhaltigkeits-reportings", label: "Nachhaltigkeits-Reportings" },
+  { value: "zeichnen", label: "Zeichnen (Anlagegruppe)" },
 ];
 
 const emptyForm = { name: "", url: "", category: "reglemente", language: "de", sort_order: 0 };

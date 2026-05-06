@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FadeIn from "@/components/motion/FadeIn";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const stammdaten = [
   { label: "Name der Anlagegruppe", value: "Wohnen Schweiz" },
@@ -45,18 +47,24 @@ const gebuehrenmodell = [
   { von: "1'000", bis: "100'000", verguetung: "1'500'000" },
 ];
 
-const zeichnungDE = [
-  { name: "Zeichnungsschein", url: "https://www.terrahelvetica-anlagestiftung.ch/_files/ugd/aa5850_a60eb32c8c28421c91603b7d6e84c0a8.pdf" },
-  { name: "Beitrittserklärung", url: "https://www.terrahelvetica-anlagestiftung.ch/_files/ugd/15b021_06712aa449a54076bba6dad4597d7479.pdf" },
-];
-
-const zeichnungFR = [
-  { name: "Bon de souscription", url: "https://www.terrahelvetica-anlagestiftung.ch/_files/ugd/aa5850_2bfc2c9b2ab245859928f6dc4307ee46.pdf" },
-  { name: "Déclaration d'adhésion", url: "https://www.terrahelvetica-anlagestiftung.ch/_files/ugd/15b021_98ff86120abf4b6cadf098d967d9ff3d.pdf" },
-];
-
 export default function Anlagegruppe() {
-  
+  const { data: zeichnungDocs } = useQuery<
+    { id: string; name: string; url: string; language: string; sort_order: number }[]
+  >({
+    queryKey: ["th_documents_zeichnen"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("th_documents")
+        .select("id,name,url,language,sort_order")
+        .eq("category", "zeichnen")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const zeichnungDE = zeichnungDocs?.filter((d) => d.language === "de") ?? [];
+  const zeichnungFR = zeichnungDocs?.filter((d) => d.language === "fr") ?? [];
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash) {
@@ -256,7 +264,7 @@ export default function Anlagegruppe() {
               <TabsContent value="de" className="mt-4">
                 <div className="flex flex-wrap gap-3">
                   {zeichnungDE.map((doc) => (
-                    <a key={doc.name} href={doc.url} target="_blank" rel="noopener noreferrer"
+                    <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
                       className="px-6 py-2.5 rounded-lg border border-primary-foreground/50 text-primary-foreground text-sm hover:bg-primary-foreground/10 transition-colors">
                       {doc.name}
                     </a>
@@ -266,7 +274,7 @@ export default function Anlagegruppe() {
               <TabsContent value="fr" className="mt-4">
                 <div className="flex flex-wrap gap-3">
                   {zeichnungFR.map((doc) => (
-                    <a key={doc.name} href={doc.url} target="_blank" rel="noopener noreferrer"
+                    <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
                       className="px-6 py-2.5 rounded-lg border border-primary-foreground/50 text-primary-foreground text-sm hover:bg-primary-foreground/10 transition-colors">
                       {doc.name}
                     </a>
