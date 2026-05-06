@@ -24,10 +24,10 @@ const stammdaten = [
   { label: "Geschäftsjahr", value: "01.01 – 31.12" },
   { label: "NAV-Kalkulation", value: "monatlich und bei Ausgaben & Rücknahmen" },
   { label: "Min. Zeichnungsbetrag", value: "CHF 100'000.00" },
-  { label: "Geschäftsführungshonorar", value: "gemäss Gebührenmodell 23*" },
-  { label: "TER ISA (GAV)", value: "0.41%" },
+  { label: "Geschäftsführungshonorar", value: "gemäss Gebührenmodell 23" },
+  { label: "TER ISA (GAV)", value: "0.48%" },
   { label: "Ausgabe- und Rücknahmekommission", value: "1.50%" },
-  { label: "Anlagezielrendite", value: "angestrebt 3% bis 4% p.a." },
+  { label: "Anlagezielrendite", value: "angestrebt 4% p.a." },
   { label: "Ertragsverwendung", value: "thesaurierend" },
   { label: "Fremdfinanzierungsquote", value: "max. 33.33%" },
   { label: "ISIN", value: "CH0544073437" },
@@ -200,7 +200,7 @@ export default function Anlagegruppe() {
         <div className="container mx-auto px-6">
           <FadeIn>
             <h2 className="text-2xl md:text-3xl font-heading font-medium mb-8">
-              *Gebührenmodell 23
+              Gebührenmodell 23
             </h2>
           </FadeIn>
           <FadeIn delay={0.2}>

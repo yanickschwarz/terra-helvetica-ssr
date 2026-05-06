@@ -67,19 +67,6 @@ export default function Portfolio() {
             Portfolio
           </h1>
         </FadeIn>
-
-        {/* Störer Badge with hover rotate */}
-        <motion.div
-          className="absolute bottom-8 right-8 md:bottom-12 md:right-12"
-          whileHover={{ rotate: 12, scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300, damping: 15 }}
-        >
-          <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-primary flex flex-col items-center justify-center text-primary-foreground shadow-lg cursor-default">
-            <img src="/images/logo.avif" alt="Terra Helvetica" className="h-8 md:h-10 mb-2 brightness-0 invert" />
-            <span className="text-xs md:text-sm font-heading font-medium leading-tight text-center px-3">Bruttorendite</span>
-            <span className="text-lg md:text-xl font-heading font-medium">&gt; 4%</span>
-          </div>
-        </motion.div>
       </section>
 
       {/* Properties Grid */}

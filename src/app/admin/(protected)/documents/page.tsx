@@ -39,11 +39,11 @@ interface DocRecord {
 }
 
 const categories = [
-  { value: "reglemente", label: "Reglemente & Statuten" },
-  { value: "prospekte", label: "Prospekte & Broschüren" },
+  { value: "reglemente", label: "Reglemente, Statuten & Prospekt" },
   { value: "geschaeftsberichte", label: "Geschäftsberichte" },
   { value: "reportings", label: "Reportings" },
-  { value: "nachhaltigkeits-reportings", label: "Nachhaltigkeits-Reportings" },
+  { value: "klima-energie", label: "Klima- und Energiewerte" },
+  { value: "ssrei", label: "SSREI: Reportings" },
   { value: "zeichnen", label: "Zeichnen (Anlagegruppe)" },
 ];
 
@@ -253,8 +253,8 @@ export default function AdminDocuments() {
       .slice()
       .sort((a, b) => a.sort_order - b.sort_order);
 
-    // Reglemente has no language split on the public page — show as single list
-    if (category === "reglemente") {
+    // Reglemente and SSREI have no language split on the public page — show as single list
+    if (category === "reglemente" || category === "ssrei") {
       return <SortableTable items={inCategory} />;
     }
 

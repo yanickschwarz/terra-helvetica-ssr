@@ -13,7 +13,7 @@ const memberships = [
   { name: "SSREI", logo: "/images/logos/ssrei.png", url: "https://ssrei.ch/", label: "Swiss Sustainable Real Estate Index" },
   { name: "ASIP", logo: "/images/logos/asip.png", url: "https://www.asip.ch/de/", label: "Schweizerischer Pensionskassenverband" },
   { name: "SSF", logo: "/images/logos/ssf.png", url: "https://www.sustainablefinance.ch/", label: "Swiss Sustainable Finance" },
-  { name: "KGAST", logo: "/images/logos/kgast.png", url: "https://www.kgast.ch/home", label: "Swiss Sustainable Finance" },
+  { name: "KGAST", logo: "/images/logos/kgast.png", url: "https://www.kgast.ch/home", label: "KGAST" },
 ];
 
 export default async function HomePage() {
