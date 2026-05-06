@@ -22,6 +22,20 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/ueberuns",
+        destination: "/ueber-uns",
+        permanent: true,
+      },
+      {
+        source: "/home-2",
+        destination: "/anlagegruppe",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
