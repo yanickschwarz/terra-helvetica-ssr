@@ -146,7 +146,7 @@ export default async function HomePage() {
             <FadeIn delay={0.1}>
               <blockquote className="border-l-4 border-primary pl-6 py-2">
                 <p className="text-lg md:text-xl 3xl:text-2xl font-heading font-medium text-primary leading-relaxed">
-                  Im Interesse unserer Kunden: Bei der Terra Helvetica Anlagestiftung gibt es keine Managementgebühr.
+                  Im Interesse unserer Kunden: Die Terra Helvetica Anlagestiftung arbeitet mit einem gestuften und limitierten Gebührenmodell.
                 </p>
               </blockquote>
             </FadeIn>
@@ -154,40 +154,20 @@ export default async function HomePage() {
               <div className="space-y-4 text-foreground/80 font-body leading-relaxed">
                 <p>
                   Für die Verwaltung der Vorsorgevermögen erhebt die Finanzindustrie Gebühren, die immer
-                  stärker in den Fokus der Öffentlichkeit rücken. Eine besonders gewichtige Gebühr ist die
-                  in der Branche übliche Managementgebühr.
-                </p>
-                <p className="font-semibold text-foreground">
-                  Sie steigt unbegrenzt linear zum verwalteten Vorsorgevermögen — obwohl mehr Vorsorgevermögen
-                  kaum mehr Verwaltungsaufwand bedeutet. Das ist nicht im Sinne der Versicherten.
+                  stärker in den Fokus der Öffentlichkeit rücken.
                 </p>
                 <p>
-                  Deshalb gibt es bei der Terra Helvetica Anlagestiftung keine Managementgebühr. An ihre
-                  Stelle tritt ein Geschäftsführungshonorar, das gestuft und begrenzt ist. Es deckt
-                  lediglich die effektiven Kosten der Vermögensverwaltung ab — damit mehr für die Rente
-                  der Versicherten übrigbleibt.
+                  Eine besonders gewichtige Gebühr ist die Managementgebühr. Sie steigt üblicherweise
+                  unbegrenzt linear zum verwalteten Vorsorgevermögen.
+                </p>
+                <p>
+                  Die Terra Helvetica Anlagestiftung geht einen anderen Weg: Sie arbeitet mit einem
+                  Geschäftsführungshonorar, das gestuft und begrenzt ist. Es deckt lediglich die
+                  effektiven Kosten der Vermögensverwaltung ab.
                 </p>
               </div>
             </FadeIn>
           </div>
-          <FadeIn delay={0.3} className="mt-10">
-            <div className="flex flex-wrap gap-4">
-              <a
-                href="https://www.terrahelvetica-anlagestiftung.ch/_files/ugd/15b021_730d83ca7a0043238b2086fad950b28f.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-8 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium tracking-wider hover:bg-primary/90 transition-colors"
-              >
-                Gebührenmodell 23
-              </a>
-              <Link
-                href="/anlagegruppe"
-                className="inline-flex items-center px-8 py-3 rounded-lg border-2 border-primary text-primary text-sm font-medium tracking-wider hover:bg-primary/5 transition-colors"
-              >
-                Mehr erfahren
-              </Link>
-            </div>
-          </FadeIn>
         </div>
       </section>
 
