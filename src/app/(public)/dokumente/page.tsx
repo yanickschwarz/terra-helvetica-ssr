@@ -257,13 +257,20 @@ export default function Dokumente() {
                         SSREI: Reportings
                       </h3>
                     </FadeIn>
-                    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 3xl:grid-cols-3 gap-4" staggerDelay={0.08}>
-                      {ssreiDocs.map((doc) => (
-                        <StaggerItem key={doc.id}>
-                          <DocCard name={doc.name} url={doc.url} />
-                        </StaggerItem>
-                      ))}
-                    </StaggerContainer>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                      <div>
+                        <FadeIn delay={0.1}>
+                          <h4 className="text-sm font-semibold text-primary uppercase tracking-wider mb-6">Deutsch</h4>
+                        </FadeIn>
+                        <StaggerContainer className="flex flex-col gap-4" staggerDelay={0.08}>
+                          {ssreiDocs.map((doc) => (
+                            <StaggerItem key={doc.id}>
+                              <DocCard name={doc.name} url={doc.url} />
+                            </StaggerItem>
+                          ))}
+                        </StaggerContainer>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
