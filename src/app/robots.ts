@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = "https://terrahelvetica.vlix.ch";
+const SITE_URL = "https://www.terrahelvetica-anlagestiftung.ch";
 
 export default function robots(): MetadataRoute.Robots {
   return {

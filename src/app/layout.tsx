@@ -7,7 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://terrahelvetica.vlix.ch"),
+  metadataBase: new URL("https://www.terrahelvetica-anlagestiftung.ch"),
   title: {
     default: "Terra Helvetica Anlagestiftung",
     template: "%s | Terra Helvetica Anlagestiftung",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "de_CH",
-    url: "https://terrahelvetica.vlix.ch",
+    url: "https://www.terrahelvetica-anlagestiftung.ch",
     siteName: "Terra Helvetica Anlagestiftung",
     title: "Terra Helvetica Anlagestiftung",
     description:

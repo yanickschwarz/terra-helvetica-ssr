@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createStaticClient } from "@/lib/supabase/static";
 
-const SITE_URL = "https://terrahelvetica.vlix.ch";
+const SITE_URL = "https://www.terrahelvetica-anlagestiftung.ch";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createStaticClient();
