@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Mail, MapPin, Phone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import FadeIn from "@/components/motion/FadeIn";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { submitContact } from "@/app/actions/contact";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -55,15 +55,10 @@ export default function Kontakt() {
     setErrorMsg("");
 
     try {
-      const { data, error } = await supabase.functions.invoke("send-contact-email", {
-        body: form,
-      });
+      const result = await submitContact(form);
 
-      if (error) {
-        throw new Error(error.message || "Senden fehlgeschlagen");
-      }
-      if (data?.error) {
-        throw new Error(data.error);
+      if (!result.ok) {
+        throw new Error(result.error || "Senden fehlgeschlagen");
       }
 
       setStatus("success");
