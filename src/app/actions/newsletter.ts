@@ -26,21 +26,22 @@ export async function subscribeNewsletter(formData: {
   }
 
   const supabase = await createClient();
-  const { data: inserted, error } = await supabase
-    .from("th_newsletter_subscribers")
-    .insert({
-      anrede,
-      vorname,
-      nachname,
-      email,
-    })
-    .select("id")
-    .single<{ id: string }>();
+
+  // Bewusst ein reiner Insert ohne .select(): Die RLS-Policy erlaubt
+  // oeffentlich kein SELECT, wodurch PostgREST die gesamte Transaktion
+  // zurueckrollen wuerde und die Anmeldung fehlschlaegt.
+  const { error } = await supabase.from("th_newsletter_subscribers").insert({
+    anrede,
+    vorname,
+    nachname,
+    email,
+  });
 
   if (error) {
     if (error.code === "23505") {
       return { ok: false, error: "Diese E-Mail-Adresse ist bereits angemeldet." };
     }
+    console.error(`[newsletter] Insert fehlgeschlagen: ${JSON.stringify(error)}`);
     return {
       ok: false,
       error: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
@@ -55,9 +56,7 @@ export async function subscribeNewsletter(formData: {
     "newsletter"
   );
 
-  if (inserted?.id) {
-    await recordCrmStatus(supabase, "th_newsletter_subscribers", inserted.id, crm);
-  }
+  await recordCrmStatus(supabase, "th_newsletter_subscribers", email, crm);
 
   return { ok: true };
 }

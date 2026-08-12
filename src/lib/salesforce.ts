@@ -39,36 +39,38 @@ export interface ForwardResult {
 /**
  * Schreibt das Ergebnis der Weiterleitung in die crm_*-Spalten.
  *
- * Der generierte Supabase-Typ im Projekt deckt diese Spalten (und generell
- * die meisten Tabellen) nicht korrekt ab, weshalb der Client hier bewusst
- * lose typisiert wird. Der Workaround bleibt auf diese eine Funktion begrenzt.
+ * Die RLS-Policies erlauben oeffentlich nur INSERT — weder SELECT noch UPDATE.
+ * Ein direktes Update aus der Server Action wuerde daher wirkungslos bleiben,
+ * ein `.select()` nach dem Insert wuerde sogar die ganze Transaktion
+ * zurueckrollen. Deshalb laeuft die Protokollierung ueber eine
+ * SECURITY-DEFINER-Funktion, die nur die crm_*-Spalten anfasst und nichts
+ * zurueckgibt.
+ *
+ * Wirft nie: eine fehlgeschlagene Protokollierung darf den Ablauf des
+ * Formulars unter keinen Umstaenden beeintraechtigen.
  */
-interface LooseSupabaseClient {
-  from: (table: string) => {
-    update: (values: Record<string, unknown>) => {
-      eq: (column: string, value: string) => Promise<unknown>;
-    };
-  };
+interface RpcCapableClient {
+  rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
 }
 
 export async function recordCrmStatus(
   supabase: unknown,
-  table: string,
-  id: string,
+  table: "th_contact_messages" | "th_newsletter_subscribers",
+  email: string,
   result: ForwardResult
 ): Promise<void> {
   try {
-    await (supabase as LooseSupabaseClient)
-      .from(table)
-      .update({
-        crm_status: result.status,
-        crm_detail: result.detail,
-        crm_synced_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    const { error } = await (supabase as RpcCapableClient).rpc("th_record_crm_status", {
+      p_table: table,
+      p_email: email,
+      p_status: result.status,
+      p_detail: result.detail,
+    });
+    if (error) {
+      console.error(`[pardot] Status nicht gespeichert: ${JSON.stringify(error)}`);
+    }
   } catch (e) {
-    // Protokollierung darf den Ablauf nie stoeren.
-    console.error(`[pardot] Status konnte nicht gespeichert werden: ${String(e)}`);
+    console.error(`[pardot] Status nicht gespeichert: ${String(e)}`);
   }
 }
 

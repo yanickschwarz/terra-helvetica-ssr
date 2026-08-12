@@ -73,6 +73,29 @@ Error-Location. Daran wird der Status abgeleitet und in den Spalten
 Zusaetzlich Logging nach stdout mit Praefix `[pardot:kontakt]` bzw.
 `[pardot:newsletter]` — in den Vercel Runtime Logs einsehbar.
 
+### ⚠️ RLS-Fallstrick — kein `.select()` nach dem Insert
+
+Die RLS-Policies erlauben oeffentlich **nur INSERT**, weder SELECT noch UPDATE
+(`th_newsletter_subscribers`: "Anyone can subscribe"; `th_contact_messages`:
+gar kein oeffentlicher Zugriff, dort schreibt die Edge Function mit Service Role).
+
+Ein `.insert().select()` fuehrt PostgREST in **einer Transaktion** aus. Der
+verweigerte SELECT laesst die gesamte Transaktion zurueckrollen — die Anmeldung
+schlaegt mit `42501` fehl und der Besucher sieht eine Fehlermeldung, obwohl der
+Insert selbst zulaessig waere. Genau das ist beim ersten Go-live passiert und hat
+das Newsletterformular vollstaendig blockiert.
+
+Deshalb:
+
+- Insert **immer ohne** `.select()` / `.single()`
+- Die Statusprotokollierung laeuft ueber die SECURITY-DEFINER-Funktion
+  `th_record_crm_status(p_table, p_email, p_status, p_detail)`. Sie aktualisiert
+  nur die crm_*-Spalten des jeweils neuesten Datensatzes zur Adresse, gibt
+  nichts zurueck und prueft Tabellen- und Statuswert gegen eine Whitelist.
+
+Aenderungen an den Formular-Actions immer gegen die echten RLS-Policies testen,
+nicht nur gegen einen erfolgreichen Build.
+
 ## Status-Seiten
 
 `/danke-kontakt`, `/fehler-kontakt`, `/danke-newsletter`, `/fehler-newsletter`

@@ -74,18 +74,7 @@ export async function submitContact(
     "kontakt"
   );
 
-  // Status am zuletzt erfassten Datensatz dieser Adresse festhalten.
-  const { data: latest } = await supabase
-    .from("th_contact_messages")
-    .select("id")
-    .eq("email", formData.email)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle<{ id: string }>();
-
-  if (latest?.id) {
-    await recordCrmStatus(supabase, "th_contact_messages", latest.id, crm);
-  }
+  await recordCrmStatus(supabase, "th_contact_messages", formData.email, crm);
 
   return { ok: true };
 }
