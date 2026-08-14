@@ -72,11 +72,14 @@ const NewsletterSection = () => {
                 </div>
                 <div>
                   <p className="text-white font-semibold text-lg mb-1">
-                    Vielen Dank für Ihre Anmeldung!
+                    Vielen Dank für Ihre Anmeldung
                   </p>
                   <p className="text-white/70 text-sm">
-                    Sie erhalten ab sofort unsere News, Finanzberichte und Investor Reportings
-                    direkt in Ihr Postfach.
+                    Zur Bestätigung erhalten Sie in Kürze eine E-Mail. Bitte klicken Sie
+                    darin auf den Bestätigungslink – erst danach ist Ihre Anmeldung aktiv.
+                  </p>
+                  <p className="text-white/60 text-sm mt-2">
+                    Sollte die E-Mail nicht ankommen, prüfen Sie bitte Ihren Spam-Ordner.
                   </p>
                 </div>
               </div>

@@ -12,7 +12,8 @@ export default function DankeNewsletter() {
     <StatusPage
       variant="success"
       title="Vielen Dank für Ihre Anmeldung"
-      message="Ihre Anmeldung zum Newsletter ist bei uns eingegangen. Zur Bestätigung erhalten Sie in Kürze eine E-Mail — bitte klicken Sie darin auf den Bestätigungslink."
+      message="Zur Bestätigung erhalten Sie in Kürze eine E-Mail. Bitte klicken Sie darin auf den Bestätigungslink – erst danach ist Ihre Anmeldung aktiv."
+      hint="Sollte die E-Mail nicht ankommen, prüfen Sie bitte Ihren Spam-Ordner."
     />
   );
 }
